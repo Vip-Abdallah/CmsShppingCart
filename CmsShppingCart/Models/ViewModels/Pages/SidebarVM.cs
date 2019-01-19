@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace CmsShppingCart.Models.ViewModels.Pages
 {
@@ -22,6 +23,7 @@ namespace CmsShppingCart.Models.ViewModels.Pages
         public int id { get; set; }
         [Required]
         [StringLength(int.MaxValue)]
+        [AllowHtml]
         public string Body { get; set; }
     }
 }

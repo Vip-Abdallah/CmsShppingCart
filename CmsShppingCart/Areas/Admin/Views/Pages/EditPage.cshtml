@@ -74,3 +74,13 @@
 <div>
     @Html.ActionLink("Back to Pages", "Index")
 </div>
+@section scripts{
+    <script src="~/Scripts/ckeditor/ckeditor.js"></script>
+    <script>
+        //Find Control With Id Or Name Equal Body and replace it woth Editor Control
+        CKEDITOR.replace("Body");
+    </script>
+
+}
+
+
