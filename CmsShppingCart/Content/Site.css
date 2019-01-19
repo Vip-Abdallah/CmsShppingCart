@@ -22,3 +22,11 @@ select,
 textarea {
     max-width: 280px;
 }
+
+
+table.sorting tr:not(.home){
+    cursor:pointer;
+}
+.ui-status-highlight{
+    border:1px dashed #ff0000;
+}

@@ -220,5 +220,71 @@ namespace CmsShppingCart.Areas.Admin.Controllers
             //redirect
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        //Post : Admin/Pages/ReorderPages
+        public void ReorderPages(string [] id)
+        {
+
+            using (Db db=new Db())
+            {
+                //set init count
+                int count = 1;
+
+                //declate PageDTO
+                PageDTO oPageDTO;
+                //Set sorting foreatch page 
+                foreach (string PageID in id)
+                {
+                    oPageDTO = db.Pages.Find(int.Parse(PageID));
+                    oPageDTO.Sorting = count;
+                    db.SaveChanges();
+                    count++;
+                }
+            }
+        }
+
+        [HttpGet]
+        //Get : Admin/Pages/EditSidebar
+        public ActionResult EditSidebar()
+        {
+            //Declare model
+            SidebarVM model;
+            using (Db db=new Db())
+            {
+                //Get the DTO
+                SidebarDTO oSidebarDTO = db.Sidebar.Find(1);
+                //Init model
+                model = new SidebarVM(oSidebarDTO);
+            }
+            //Return view with model
+            return View(model);
+        }
+
+        [HttpPost]
+        //Post : Admin/Pages/EditSidebar
+        public ActionResult EditSidebar(SidebarVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (Db db=new Db())
+            {
+                //Get The DTO
+                SidebarDTO oSidebarDTO = db.Sidebar.Find(1);
+
+                //DTO the Body
+                oSidebarDTO.Body = model.Body;
+
+                //Save DTO
+                db.SaveChanges();
+            }
+            //Set TempData message
+            TempData["SM"] = "You have edited the sidebar";
+            //Redirect
+            return RedirectToAction("EditSidebar");
+        }
     }
 }
