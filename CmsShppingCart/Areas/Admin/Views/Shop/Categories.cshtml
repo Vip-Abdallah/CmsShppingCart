@@ -1,0 +1,149 @@
+﻿@model List<CmsShppingCart.Models.ViewModels.Shop.CategoryVM>
+
+@{
+    ViewBag.Title = "Categories";
+}
+
+<h2>Categories</h2>
+
+<div class="new-cat">
+    <input type="text" id="newcatname" />
+    <p>
+        <a href="#" id="newcata"> Add anew category</a>
+        <span class="ajax-text">
+            <img src="~/Content/img/ajax-loader.gif" /></span>
+    </p>
+</div>
+@if (!Model.Any())
+{
+<h1 class="text-center"> There are no categories</h1>
+}
+else
+{
+<table class="table sorting" id="categories">
+    <tr class="home">
+        <th>
+            Name
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model)
+{
+    <tr id="id_@item.Id">
+        <td>
+            @Html.EditorFor(model => item.Name, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+        </td>
+        <td>
+            @if (item.Slug != "home")
+            {
+                @Html.ActionLink("Delete", "DeleteCategory", new { id = item.Id }, new { @class = "delete" })
+            }
+        </td>
+    </tr>
+}
+
+</table>
+}
+@section scripts{
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+<script>
+    $(function () {
+
+        ///////////////////////
+        /*Reorder categories*/
+        $('table#categories tbody').sortable({
+            items: "tr:not(.home)",
+            placeholder: "ui-status-highlight",
+            update: function () {
+                debugger;
+                var ids = $('table#categories tbody').sortable('serialize');
+                
+                var url = "/Admin/Shop/ReorderCategories";
+                $.post(url, ids, function (data) {
+
+                });
+            }
+        });
+
+        /*Add New Category*/
+        var newCatA = $('a#newcata');
+        var newCatTextInput = $("#newcatname");
+        var ajaxText = $('span.ajax-text');
+        var table = $("table#categories tbody");
+        newCatTextInput.keyup(function (e) {
+            //press enter
+            if (e.keyCode==13) {
+                newCatA.click();
+            }
+        });
+
+
+        newCatA.click(function (e) {
+            e.preventDefault();
+            var catName = newCatTextInput.val();
+            if (catName.length<2) {
+                alert('Category Name must be atleast 2 charecters long.');
+                return false;
+            }
+            ajaxText.show();
+
+            var Url = '/Admin/Shop/AddNewCategory';
+
+            $.post(Url, { catName: catName }, function (data) {
+                var response = data.trim();
+                if (response=="titletaken") {
+                    ajaxText.html("<span class='alert alert-danger'> That title is taken!</span>");
+                    setTimeout(function () {
+                        ajaxText.fadeOut("fast", function () {
+                            ajaxText.html("<img src='@Url.Content("~/Content/img/ajax-loader.gif")' /></span>");
+                            
+                        });
+                    },2000);
+                } else {
+                    if (!$('table#categories').length) {
+                        //refresh the page
+                        location.reload();
+                    }
+                    else {
+                        ajaxText.html("<span class='alert alert-success'> The category has been added</span>");
+                        setTimeout(function () {
+                            ajaxText.fadeOut("fast", function () {
+                                ajaxText.html("<img src='~/Content/img/ajax-loader.gif' /></span>");
+                                ajaxText.hide();
+                            });
+                        }, 2000);
+                        //set value of textbox
+                        newCatTextInput.val("");
+
+                        //make a copy of last tr in the table
+                        var toAppend = $("table#categories tbody tr:last").clone();
+                        toAppend.attr("id", "id_" + data);
+                        toAppend.find("#item_Name").val(catName);
+                        toAppend.find("a.delete").attr("href", '/Admin/Shop/DeleteCategory/' + data);
+                        table.append(toAppend);
+                        table.sortable("refresh");
+                    }
+                }
+            });
+
+        });
+
+        ///////////////////////
+        /**/
+        //we change to use this code becuase we change dynamically
+        //to enable catch
+        $('body').on("click","a.delete",function(){
+            if (!confirm("confirm category deletion")) {
+                return false;
+            }
+            else {
+
+            }
+        });
+        
+    });
+
+    /////
+    </script>
+}
