@@ -56,7 +56,7 @@ else
             items: "tr:not(.home)",
             placeholder: "ui-status-highlight",
             update: function () {
-                debugger;
+                
                 var ids = $('table#categories tbody').sortable('serialize');
                 
                 var url = "/Admin/Shop/ReorderCategories";
@@ -109,7 +109,7 @@ else
                         ajaxText.html("<span class='alert alert-success'> The category has been added</span>");
                         setTimeout(function () {
                             ajaxText.fadeOut("fast", function () {
-                                ajaxText.html("<img src='~/Content/img/ajax-loader.gif' /></span>");
+                                ajaxText.html("<img src='@Url.Content("~/Content/img/ajax-loader.gif")' /></span>");
                                 ajaxText.hide();
                             });
                         }, 2000);
