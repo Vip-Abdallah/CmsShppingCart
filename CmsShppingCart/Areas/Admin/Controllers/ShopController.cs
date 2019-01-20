@@ -101,5 +101,39 @@ namespace CmsShppingCart.Areas.Admin.Controllers
             //redirect
             return RedirectToAction("Categories");
         }
+
+        [HttpPost]
+        public string RenameCategory(string id , string newCatName)
+        {
+            //declare id
+            string MSG;
+
+
+            using (Db db = new Db())
+            {
+                int _ID = int.Parse(id);
+                //check that category name is unique
+                if (db.Categories.Any(x => x.Id!= _ID && x.Name == newCatName))
+                {
+                    return "titletaken";
+                }
+                //Init DTO
+                CategoryDTO oCategoryDTO = db.Categories.Find(int.Parse(id));
+
+                //Add to DTO
+                oCategoryDTO.Name = newCatName;
+                oCategoryDTO.Slug = newCatName.Replace(" ", "-").ToLower();
+
+                //Save DTO
+                db.SaveChanges();
+
+                //Set Success msg
+                MSG = "Done";
+
+            }
+
+            //Return Id
+            return MSG;
+        }
     }
 }
