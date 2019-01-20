@@ -32,6 +32,7 @@ else
 {
     <tr id="id_@item.Id">
         <td>
+            <div class="ajaxdivtd"></div>
             @Html.EditorFor(model => item.Name, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
         </td>
         <td>
@@ -130,7 +131,7 @@ else
         });
 
         ///////////////////////
-        /**/
+        /*Delete Category*/
         //we change to use this code becuase we change dynamically
         //to enable catch
         $('body').on("click","a.delete",function(){
@@ -140,6 +141,41 @@ else
             else {
 
             }
+        });
+
+        ///////////////////////
+        /*Rename Category*/
+        var OrginalTextBoxValue;
+        $('table#categories input.text-box').dblclick(function () {
+            OrginalTextBoxValue = $(this).val();
+            $(this).attr("readonly", false);
+
+        });
+
+        $('table#categories input.text-box').keyup(function (e) {
+            if (e.keyCode == 13) {
+                $(this).blur();
+            }
+        });
+
+        $('table#categories input.text-box').blur(function () {
+            var $this = $(this);
+            var ajaxdiv = $this.parent.find(".ajaxdivtd");
+            var newCatName = $this.val();
+            //1 parent [td] , 2 parent==>[tr] tr contain Id
+            var id = $this.parent().parent().attr("id").substring(3);
+            var url = '/Admin/Shop/RenameCategory';
+            if (newCatName.length < 2) {
+                alert('Category Name must be atleast 2 charecters long.');
+                $this.attr("readonly", true);
+                return false;
+            }
+            $.post(url, { id: id, newCatName: newCatName }, function (data) {
+                var Response = data;
+                if (true) {
+
+                }
+            });
         });
         
     });

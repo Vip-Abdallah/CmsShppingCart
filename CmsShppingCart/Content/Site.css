@@ -43,3 +43,7 @@ display:none;
 table.sorting tr{
     padding:20px !important;
 }
+
+.ajaxdivtd{
+    position:absolute;
+}
