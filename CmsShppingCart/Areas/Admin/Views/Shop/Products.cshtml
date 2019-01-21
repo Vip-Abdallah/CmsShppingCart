@@ -1,0 +1,100 @@
+﻿@model IEnumerable<CmsShppingCart.Models.ViewModels.Shop.ProductVM>
+@using System.Web.Mvc;
+@using PagedList;
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = "Products";
+}
+
+<h2>Products</h2>
+
+<select id="SelectCategory" name="SelectedCategory">
+    <option value="0">All</option>
+    @foreach (var item in ViewBag.Categories)
+    {
+        if (item.Value == ViewBag.SelectedCategoryID)
+        {
+            <option selected="selected" value="@item.Value">@item.Text</option>
+        }
+        else
+        {
+            <option value="@item.Value">@item.Text</option>
+        }
+    }
+</select>
+<br /><br />
+<p>
+    @Html.ActionLink("Add Product", "AddProduct")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+            Description
+        </th>
+        <th>
+            Price
+        </th>
+        <th>
+            Category Name
+        </th>
+        <th>
+            Image
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in ViewBag.OnePageOfProducts) {
+    <tr>
+        <td>
+            @item.Name
+        </td>
+        <td>
+            @item.Description
+        </td>
+        <td>
+            @item.Price
+        </td>
+        <td>
+            @item.CategoryName
+        </td>
+        <td>
+            <a href="/Admin/Shop/EditProduct/@item.Id">
+                <img src="/Images/Uploads/Products/@item.Id/Thumb/@item.ImageName" />
+            </a>
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "EditProduct", new { id=item.Id }) |
+            @Html.ActionLink("Delete", "DeleteProduct", new { id=item.Id })
+        </td>
+    </tr>
+}
+
+</table>
+
+@Html.PagedListPager((IPagedList)ViewBag.OnePageOfProducts, Page => Url.Action("Products",new { Page , CatId = ViewBag.SelectedCategoryID }))
+
+
+@section scripts{
+
+<script>
+
+    $(function () {
+        /*Select Category*/
+        $('#SelectCategory').on("change", function () {
+            var SelectedValue = $(this).val();
+            if (SelectedValue) {
+                window.location = '/Admin/Shop/Products?CatId=' + SelectedValue;
+            }
+            return false;
+        });
+
+        //////////////
+    });
+
+
+    </script>  
+  
+}
