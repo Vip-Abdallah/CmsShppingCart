@@ -107,8 +107,7 @@ namespace CmsShppingCart.Areas.Admin.Controllers
         {
             //declare id
             string MSG;
-
-
+            
             using (Db db = new Db())
             {
                 int _ID = int.Parse(id);
