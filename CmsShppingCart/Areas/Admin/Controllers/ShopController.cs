@@ -219,9 +219,9 @@ namespace CmsShppingCart.Areas.Admin.Controllers
 
             string PathString1 = Path.Combine(OrginalDirectory.ToString(),"Products");
             string PathString2 = Path.Combine(OrginalDirectory.ToString(), "Products\\"+Id.ToString());
-            string PathString3 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Thumb");
+            string PathString3 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Thumbs");
             string PathString4 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Gallery");
-            string PathString5 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Gallery\\Thumb");
+            string PathString5 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Gallery\\Thumbs");
 
             if (!Directory.Exists(PathString1))
                 Directory.CreateDirectory(PathString1);
@@ -259,7 +259,7 @@ namespace CmsShppingCart.Areas.Admin.Controllers
                 }
 
                 //init image name
-                string ImageName = Guid.NewGuid().ToString()+"."+Path.GetExtension(file.FileName);
+                string ImageName = Guid.NewGuid().ToString()+Path.GetExtension(file.FileName);
 
                 //save image name to DTO
                 using (Db db=new Db())
@@ -326,7 +326,7 @@ namespace CmsShppingCart.Areas.Admin.Controllers
                 ProductDTO oProductDTO = db.Products.Find(Id);
 
                 //Make Sure Product Exsist
-                if (oProductDTO!=null)
+                if (oProductDTO==null)
                 {
                     return Content("That Product dose not exist");
                 }
@@ -337,12 +337,129 @@ namespace CmsShppingCart.Areas.Admin.Controllers
                 oProductVM.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
 
                 //Get all gallary image 
-                oProductVM.GallaryImage = Directory.EnumerateFiles(Server.MapPath("~/Images/Products/"+oProductVM.Id+ "/Gallery/Thumb"))
+                oProductVM.GallaryImage = Directory.EnumerateFiles(Server.MapPath("~/Images/Uploads/Products/" + oProductVM.Id+ "/Gallery/Thumbs"))
                                                    .Select(fn=>Path.GetFileName(fn));
             }
 
             //return view with model
             return View(oProductVM);
+        }
+
+        //POST: Admin/Shop/EditProduct
+        [HttpPost]
+        public ActionResult EditProduct(ProductVM model , HttpPostedFileBase file)
+        {
+            //Get Product Id
+            int Id = model.Id;
+            //Publulate categories select list and image gallery
+            using (Db db=new Db())
+            {
+                model.Categories = new SelectList(db.Categories.ToList(),"Id","Name");
+            }
+            model.GallaryImage = Directory.EnumerateDirectories(Server.MapPath("~/Images/Uploads/Products/" + model.Id + "/Gallery/Thumbs"))
+                                           .Select(fn => Path.GetFileName(fn)).ToList();
+            //check model state
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            //make sure product name is unique
+            using (Db db=new Db())
+            {
+                if (db.Products.Any(x => x.Id != Id && x.Name == model.Name))
+                {
+                    ModelState.AddModelError("","That Product Name is Taken!");
+                    return View(model);
+                } 
+            }
+            //Update product
+            using (Db db=new Db())
+            {
+                ProductDTO oProductDTO = db.Products.Find(Id);
+                oProductDTO.Name = model.Name;
+                oProductDTO.Slug = model.Name.Replace(" ", "-").Trim();
+                oProductDTO.Description = model.Description;
+                oProductDTO.Price = model.Price;
+                oProductDTO.CategoryId = model.CategoryId;
+                oProductDTO.ImageName = model.ImageName;
+
+                CategoryDTO oCategoryDTO = db.Categories.FirstOrDefault(x => x.Id == model.CategoryId);
+                oProductDTO.CategoryName = oCategoryDTO.Name;
+                
+                db.SaveChanges();
+            }
+            //set TempDate Message 
+            TempData["SM"] = "You Have Edited the product!";
+            #region Upload Image
+
+            //Check if file was uploaded
+            if (file != null && file.ContentLength > 0)
+            {
+               
+                //Get File ext
+                string ext = file.ContentType.ToString();
+                //Verify ext
+                if (ext != "image/jpg" &&
+                    ext != "image/jpg" &&
+                    ext != "image/jpeg" &&
+                    ext != "image/gif" &&
+                    ext != "image/png")
+                {
+                    using (Db db = new Db())
+                    {
+                        model.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
+                        ModelState.AddModelError("", "The Image was not uploaded - wtong image extension!");
+                        return View(model);
+                    }
+                }
+
+                //Set Upload Directory
+                var OrginalDirectory = new DirectoryInfo(string.Format("{0}Images\\Uploads", Server.MapPath(@"\")));
+                
+                string PathString1 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString());
+                string PathString2 = Path.Combine(OrginalDirectory.ToString(), "Products\\" + Id.ToString() + "\\Thumbs");
+
+                DirectoryInfo dir1 = new DirectoryInfo(PathString1);
+                DirectoryInfo dir2 = new DirectoryInfo(PathString2);
+
+                foreach (FileInfo oFile in dir1.GetFiles())
+                {
+                    if (oFile.Name == model.ImageName)
+                        oFile.Delete();
+                }
+                foreach (FileInfo oFile in dir2.GetFiles())
+                {
+                    if (oFile.Name == model.ImageName)
+                        oFile.Delete();
+                }
+                //init image name
+                string ImageName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+                //save image name to DTO
+                using (Db db = new Db())
+                {
+                    ProductDTO oProductDTO = db.Products.Find(Id);
+                    oProductDTO.ImageName = ImageName;
+                    db.SaveChanges();
+                }
+                //set orginal and thumb image paths
+                var Path1 = string.Format("{0}\\{1}", PathString2, ImageName);
+                var Path2 = string.Format("{0}\\{1}", PathString2, ImageName);
+
+                //save orginal
+                file.SaveAs(Path1);
+                //create and save thumb
+                WebImage oWebImage = new WebImage(file.InputStream);
+                oWebImage.Resize(200, 200);
+
+                oWebImage.Save(Path2);
+
+            }
+
+            #endregion
+
+            //Redirect 
+            return RedirectToAction("EditProduct");
         }
     }
 }
