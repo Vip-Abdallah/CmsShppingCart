@@ -408,7 +408,7 @@ namespace CmsShppingCart.Areas.Admin.Controllers
                     using (Db db = new Db())
                     {
                         model.Categories = new SelectList(db.Categories.ToList(), "Id", "Name");
-                        ModelState.AddModelError("", "The Image was not uploaded - wtong image extension!");
+                        ModelState.AddModelError("", "The Image was not uploaded - wrong image extension!");
                         return View(model);
                     }
                 }
@@ -424,12 +424,14 @@ namespace CmsShppingCart.Areas.Admin.Controllers
 
                 foreach (FileInfo oFile in dir1.GetFiles())
                 {
-                    if (oFile.Name == model.ImageName)
+                    //no need to check file name becuase it will be only one file
+                    //if (oFile.Name == model.ImageName)
                         oFile.Delete();
                 }
                 foreach (FileInfo oFile in dir2.GetFiles())
                 {
-                    if (oFile.Name == model.ImageName)
+                    //no need to check file name becuase it will be only one file
+                    //if (oFile.Name == model.ImageName)
                         oFile.Delete();
                 }
                 //init image name
@@ -443,7 +445,7 @@ namespace CmsShppingCart.Areas.Admin.Controllers
                     db.SaveChanges();
                 }
                 //set orginal and thumb image paths
-                var Path1 = string.Format("{0}\\{1}", PathString2, ImageName);
+                var Path1 = string.Format("{0}\\{1}", PathString1, ImageName);
                 var Path2 = string.Format("{0}\\{1}", PathString2, ImageName);
 
                 //save orginal
@@ -460,6 +462,92 @@ namespace CmsShppingCart.Areas.Admin.Controllers
 
             //Redirect 
             return RedirectToAction("EditProduct");
+        }
+
+        //GET: Admin/Shop/DeleteProduct/Id
+        public ActionResult DeleteProduct(int Id)
+        {
+            using (Db db=new Db())
+            {
+                //Get ProductDTO
+                ProductDTO oProductDTO = db.Products.Find(Id);
+                
+                //Delete Product
+                db.Products.Remove(oProductDTO);
+
+                //Save 
+                db.SaveChanges();
+
+            }
+
+            //Delete Product Folder
+            
+            DirectoryInfo oOrginalDir = new DirectoryInfo(string.Format("{0}Images\\Uploads",Server.MapPath(@"\")));
+            string PathString1 = Path.Combine(oOrginalDir.ToString(), "Products\\" + Id);
+
+            if (Directory.Exists(PathString1))
+            {
+                Directory.Delete(PathString1,true);
+            }
+
+            //Redirect
+            return RedirectToAction("Products");
+        }
+
+        [HttpPost]
+        //POST: Admin/Shop/SaveGallaryImages
+        //Id Come From on sending
+        public void SaveGallaryImages(int id)
+        {
+            //Loop through files
+            foreach (string FileName in Request.Files)
+            {
+                //init the filr
+                HttpPostedFileBase file = Request.Files[FileName];
+
+                //Check it's not null
+                if (file!=null && file.ContentLength > 0)
+                {
+                    //Set directory paths
+                    var OrginalDir = new DirectoryInfo(string.Format("{0}Images\\Uploads", Server.MapPath(@"\")));
+                    string pathString1 = Path.Combine(OrginalDir.ToString(), "Products\\" + id + "\\Gallery");
+                    string pathString2 = Path.Combine(OrginalDir.ToString(), "Products\\" + id + "\\Gallery\\Thumbs");
+
+                    //init image name
+                    string ImageName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+                    //Set image paths
+                    var path1 = string.Format("{0}\\{1}", pathString1, ImageName);
+                    var path2 = string.Format("{0}\\{1}", pathString2, ImageName);
+
+                    //Save orginal and thumb 
+                    file.SaveAs(path1);
+
+                    WebImage oThumbImage = new WebImage(file.InputStream);
+                    oThumbImage.Resize(200, 200);
+                    oThumbImage.Save(path2);
+                }
+            }
+        }
+
+        [HttpPost]
+        //POST: Admin/Shop/DeleteImage
+        public string DeleteImage(int id,string ImageName)
+        {
+            //
+            string FullPath1 = Request.MapPath("~/Images/Uploads/Products/" + id + "/Gallery/"+ImageName);
+            string FullPath2 = Request.MapPath("~/Images/Uploads/Products/" + id + "/Gallery/Thumbs/" + ImageName);
+
+            if (System.IO.File.Exists(FullPath1))
+            {
+                System.IO.File.Delete(FullPath1);
+            }
+            if (System.IO.File.Exists(FullPath2))
+            {
+                System.IO.File.Delete(FullPath2);
+            }
+
+            return "";
         }
     }
 }
