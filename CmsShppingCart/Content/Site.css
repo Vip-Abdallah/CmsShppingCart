@@ -47,3 +47,15 @@ table.sorting tr{
 .ajaxdivtd{
     position:absolute;
 }
+span.loader{
+    display:none;
+}
+
+span.ajaxmsg {
+    background:green;
+    display:none;
+    padding:10px;
+    color:white;
+    position:absolute;
+
+}

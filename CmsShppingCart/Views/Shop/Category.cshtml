@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<CmsShppingCart.Models.ViewModels.Shop.ProductVM>
 
 @{
-    ViewBag.Title = "Category";
+    ViewBag.Title = ViewBag.CategoryName;
 }
 
-<h2>Category</h2>
+<h2>@ViewBag.CategoryName</h2>
 <table class="table">
     <tr>
         <th>
@@ -17,10 +17,7 @@
            Price
         </th>
         <th>
-            CategoryName
-        </th>
-        <th>
-            ImageName
+            Image
         </th>
         <th></th>
     </tr>
@@ -37,14 +34,13 @@
             @Html.DisplayFor(modelItem => item.Price)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.CategoryName)
+            <a href="/Shop/Product-Details/@item.Slug">
+                <img src="/images/Uploads/Products/@item.Id/Thumbs/@item.ImageName" />
+            </a>
         </td>
         <td>
-            <img src="/images/Uploads/Products/@item.Id/Thumbs/@item.ImageName" />
-        </td>
-        <td>
-           
-        </td>
+            <a href="/Shop/Product-Details/@item.Slug">Details</a>
+</td>
     </tr>
 }
 
