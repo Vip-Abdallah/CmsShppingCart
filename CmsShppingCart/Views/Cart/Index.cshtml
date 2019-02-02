@@ -1,0 +1,157 @@
+﻿@model IEnumerable<CmsShppingCart.Models.Cart.CartVM>
+
+@{
+    ViewBag.Title = "Cart Details";
+}
+
+<h2>Cart Details</h2>
+
+@if (ViewBag.Message != null)
+{
+<h3>@ViewBag.Message</h3>
+}
+else
+{
+
+<table class="table">
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+           Quantity
+        </th>
+        <th>
+            Price
+        </th>
+        <th>
+            Image
+        </th>
+        <th>
+
+        </th>
+        <th>
+            Total
+        </th>
+        <td></td>
+    </tr>
+
+@foreach (var item in Model)
+{
+    <tr>
+        
+        <td>
+            @Html.DisplayFor(modelItem => item.ProductName)
+        </td>
+        <td class="qty@(item.ProductID)">
+            @Html.DisplayFor(modelItem => item.Quantity)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Price)
+        </td>
+        <td>
+            <img src="Images/Uploads/Products/@item.ProductID/Thumbs/@item.Image" />
+        </td>
+        <td>
+           <a href="#" class="incrproduct" data-id="@item.ProductID">+</a>
+            <a href="#" class="decrproduct" data-id="@item.ProductID">-</a>
+            <a href="#" class="removeproduct" data-id="@item.ProductID">Remove</a>
+        </td>
+        <td class="Total@(item.ProductID)">
+            @Html.DisplayFor(modelItem => item.Total)
+        </td>
+    </tr>
+}
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="grandtotal"><b>Grand Total</b> <span>@ViewBag.GrandTotal</span></td>
+    </tr>
+
+</table>
+}
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+            /* Increase Product qty*/
+
+            $('a.incrproduct').click(function (e) {
+                e.preventDefault();
+                var ProductID = $(this).data("id");
+                var Url = '/Cart/IncrementProduct';
+                $.getJSON(Url, { ProductID: ProductID }, function (data) {
+                    $('td.qty' + ProductID).html(data.qty);
+
+                    var price = data.qty * data.price;
+                    var priceHtml = price.toFixed(3);
+                    $('td.Total' + ProductID).html(priceHtml);
+
+                    var GrandTotal = parseFloat($('td.grandtotal span').text());
+
+                    $('td.grandtotal span').text((GrandTotal + data.price).toFixed(3));
+
+                });
+
+            });
+
+            /////////////
+
+            /* Decrease Product qty*/
+
+            $('a.decrproduct').click(function (e) {
+                e.preventDefault();
+                $this = $(this);
+                var ProductID = $this.data("id");
+                var Url = '/Cart/DecrementProduct';
+                $.getJSON(Url, { ProductID: ProductID }, function (data) {
+                    if (data.qty == 0) {
+                        $this.parent().parent().fadeOut("fast", function () {
+                            location.reload();
+                        });
+                    }
+                    else {
+                        $('td.qty' + ProductID).html(data.qty);
+
+                        var price = data.qty * data.price;
+                        var priceHtml = price.toFixed(3);
+                        $('td.Total' + ProductID).html(priceHtml);
+
+                        var GrandTotal = parseFloat($('td.grandtotal span').text());
+
+                        $('td.grandtotal span').text((GrandTotal - data.price).toFixed(3));
+                    }
+                });
+
+            });
+
+            /////////////
+
+            /* Remove Product*/
+
+            //$('a.delete').click(function () {
+            //    if (!confirm("confirm page deleation")) {
+            //        return false;
+            //    }
+            //});
+
+            $('a.removeproduct').click(function (e) {
+                e.preventDefault();
+                $this = $(this);
+                var ProductID = $this.data("id");
+                var Url = '/Cart/RemoveProduct';
+                $.get(Url, { ProductID: ProductID }, function (data) {
+                    location.reload();
+                });
+
+            });
+
+            //////////////
+        });
+</script>
+}
