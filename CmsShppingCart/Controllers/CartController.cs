@@ -181,5 +181,14 @@ namespace CmsShppingCart.Controllers
             Session["Cart"] = cart;
 
         }
+
+        public ActionResult PaypalPartial()
+        {
+            //Init Cart LIst
+            List<CartVM> cart = Session["Cart"] as List<CartVM>;
+
+
+            return PartialView(cart);
+        }
     }
 }
