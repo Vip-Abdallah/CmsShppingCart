@@ -1,4 +1,4 @@
-﻿@model IEnumerable<CmsShppingCart.Models.Cart.CartVM>
+﻿@model IEnumerable<CmsShppingCart.Models.ViewModels.Cart.CartVM>
 
 @{
     ViewBag.Title = "Cart Details";
@@ -13,12 +13,7 @@
 }
 else
 {
-    <div class="ajaxbg">
-        <span>
 
-            <img src="~/Content/img/ajax-loader.gif" />
-        </span>
-    </div>
 <table class="table">
     <tr>
         <th>
@@ -83,7 +78,7 @@ else
     <form class="hide" action="https://www.sandbox.paypal.com/us/cgi-bin/webscr" method="post">
         <input type="hidden" name="cmd" value="_cart">
         <input type="hidden" name="upload" value="1">
-        <input type="hidden" name="business" value="you@youremail.com">
+        <input type="hidden" name="business" value="jultranet-facilitator@gmail.com">
 
         @foreach (var item in Model)
         {
@@ -92,8 +87,10 @@ else
             <input type="hidden" name="quantity_@count" value="@item.Quantity">
             count++;
         }
+
         <input type="hidden" name="currency_code" value="USD">
         <input type="image" src="http://www.paypal.com/en_US/i/btn/x-click-but01.gif" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+
     </form>
 </div>
 
@@ -197,9 +194,13 @@ else
                 e.preventDefault();
                 var $this = $(this);
                 var Url = '/Cart/PlaceOrder';
-                $.get(Url, { ProductID: ProductID }, function (data) {
-                   
+                $('.ajaxbg').show();
 
+                $.post(Url, { }, function (data) {
+                   $('.ajaxbg span').text('Thank you , you will be redirected tp paypal');
+                   setTimeout(function () {
+                       $('form input[name="submit"]').click();
+                   }, 2000);
                 });
 
             });

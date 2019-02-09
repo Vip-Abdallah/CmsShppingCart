@@ -18,7 +18,7 @@
         <br />
         @Html.DisplayFor(model => model.Price)
         <br />
-        @if (Request.IsAuthenticated)
+        @if (Request.IsAuthenticated && User.IsInRole("User"))
         {
             <div class="addtocart">
                 <a href="#" class="addtocart">Add to Cart</a>
